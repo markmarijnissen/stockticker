@@ -5,15 +5,18 @@ class StockController extends Spine.Controller
 	template: template
 
 	# constructor
-	(symbol) ->
+	(symbol = "") ->
 		super ...
-		# create a new Stock model
-		@stock = new Stock(symbol)
+		# bind to existing model if exists
+		@model = Stock.findByAttribute('symbol',symbol)
+		# otherwise, create a fresh model
+		@model = new Stock(symbol:symbol) unless @model?
+		# release element upon model's destruction
+		@model.bind 'destroy',@release
 		# render it immediatly
 		@render()
 
 	# render the template with the Stock model
-	render: ->
-		@html @template(@stock)
+	render: -> @html @template(@model)
 
 module.exports = StockController
