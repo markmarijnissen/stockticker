@@ -1,0 +1,11 @@
+.header
+	.symbol #{symbol}
+	.name #{name}
+.body
+	if currentPrice > 0
+		.price #{currentPrice}
+		percentageClass = percentage > 0? 'positive' : 'negative'
+		.percentage(class=percentageClass) #{percentage}
+	else
+		.loading Loading...
+		.percentage
