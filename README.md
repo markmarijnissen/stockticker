@@ -1,6 +1,7 @@
 Stock Ticker Tutorial
 ===============
-Stock Ticker is a modern web-application build using the following technology:
+Stock Ticker is a modern web-application which displays stock prices in real-time.
+It is build using the following technology:
 
 * **jQuery** and **[Spine.js](http://www.spinejs.com)**, a MCV framework
 * **[LiveScript](http://gkz.github.com/LiveScript/)**, which compiles into JavaScript.
@@ -46,11 +47,10 @@ Try run `brunch watch -server` and navigate to [http://localhost:3333](http://lo
 
 Step 1. Stock MVC
 -----------------
-First, we will create the necessary Stock MVC. While Brunch supports generators and scaffolding,
-I haven't created generators for Spine.js with LiveScript yet, so we'll have to do this manually.
+First, we create a model, view and controller for a single stock item.
 
-We have a `stock` model, which retrieves information of one particular stock. 
-We can write an initial model in `app/models/stock.ls`:
+`app/models/stock.ls`:
+
 ```LiveScript
 class Stock extends Spine.Model
 	@configure('Stock','name','symbol','currentPrice','openingPrice','percentage')
@@ -65,7 +65,7 @@ class Stock extends Spine.Model
 	
 module.exports = Stock
 ```
-`@configure` tells Spine which attributes the model has. This is used troughout spine.js for storing in localStorage, ajax-request, etc. 
+`@configure` defines the class name and attributes. This is used troughout Spine.js, for example when saving and searching instances in the global Stock collection.
 
 The model will be displayed with a stock view:
 `app/views/stock.jade`
@@ -82,74 +82,91 @@ The model will be displayed with a stock view:
 		.loading Loading...
 		.percentage
 ```
-As you can see, the view displays loading when the stock information is not yet fetched, and it adds a 'positive' or 'negative' class to the percentage depending on its value.
+As you can see, the template has a little display logic:
+* It will display "Loading" when the stock has not retrieved.
+* It adds 'positive' or 'negative' styling to the percentage.
+* It formats the numbers
 
-Finally, we create a controller to connect model with the view:
-`app/controllers/stock.ls`:
+Finally, a controller connects the view with the model. Controllers deal with rendering templates, responding to DOM events, and they keep the model and view in sync. Spine.js controllers have a DOM element associated with it, and some convenience methods to manipulate it.
+
 ```CoffeeScript
+# /app/controllers/stock.ls
+
 Stock = require('models/stock')
 template = require('views/stock')
 
 class StockController extends Spine.Controller
 	template: template
+	className: 'stock'
 
 	# constructor
-	(symbol) ->
+	(attrs) ->
 		super ...
-		# create a new Stock model
-		# Spine Model Constructor accepts objects, which set the initial attributes of the instance.
-		@model = new Stock(symbol:symbol) 
-		# render it immediatly
-		@render()
+		symbol = attrs.symbol
+		# bind to existing model if exists
+		@model = Stock.findByAttribute 'symbol',symbol
+		# otherwise, create a fresh model & save it to global collection
+		unless @model?
+			@model = new Stock symbol:symbol
+			@model = @model.save! 
+		# re-render view upon model change
+		@model.bind 'change',@render
+		# render upon creation
+		@render!
 
 	# render the template with the Stock model
-	render: ->
-		@html template(@model)
+	render: ~> @html @template(@model)
 
 module.exports = StockController
 ```
 
-### Testing
 
-We already have quite some behavior that we should test to verify it works correctly. 
-Brunch uses Mocha. We can test by executing `brunch test` or by using the browser runner at [localhost:3333/test](http://localhost:3333/test).
 
-Testing is done with [chai's](http://chaijs.com/api/bdd/) `expect` grammer, which is wrapped in TDD/BDD style 'describe' and 'it' functions.
+Step 2. Testing
+---------------
+We should test if our app behaves as expected. We use [Mocha](http://visionmedia.github.com/mocha/) as testing framework. Test are executed using `brunch test` or by using the browser runner at [localhost:3333/test](http://localhost:3333/test).
 
-So we create 'test/stock_test.ls' to test our Model, View and Controller:
+`brunch test` is run in Node.js, and calls `test_helpers.coffee` to include necessary libraries, such as 
+[chai.js'](http://chaijs.com/api/bdd/) 'expect' grammar.
 
 ```CoffeeScript
+# /test/stock_test.ls
+
 StockController = require('controllers/stock')
 
 describe 'Stock', (x) -> 
 	stock = null
 	beforeEach ->
-		stock := new StockController('test')
+		stock := new StockController symbol:'TEST'
 
 	it 'renders the stock template',->
 		expect $(stock.el).find('div.header') .to.be.ok
 
 	it 'shows "loading" when no information has been retrieved',->
 		expect $(stock.el).find('.loading') .to.be.not.empty # it exists when $ is not empty
-		expect $(stock.el).find('.loading').html() .to.match /loading/i # and it says loading
+		expect $(stock.el).find('.loading').html! .to.match /loading/i # and it says loading
 
-	it 'show positive percentages "green"',->
-		stock.stock.currentPrice = 10 # initialize stock
-		stock.stock.percentage = 0.1 # with positive percentage
-		stock.render()
+	it 'show positive percentages in "green"',->
+		stock = new StockController
+			symbol: 'TEST'
+			currentPrice: 10 # initialize stock
+			percentage: 0.1 # with positive percentage
+
 		expect $(stock.el).find('.percentage').attr('class') .to.match /positive/
 
-	it 'show negative percentages "red"',->
-		stock.stock.currentPrice = 10 # initialize stock
-		stock.stock.percentage = -0.1 # with negative percentage
-		stock.render()		
+	it 'show negative percentages in "red"',->
+		stock = new StockController
+			symbol: 'TEST'
+			currentPrice: 10 # initialize stock
+			percentage: -0.1 # with positive percentage
+
 		expect $(stock.el).find('.percentage').attr('class') .to.match /negative/
 ```
-Note: We must use `describe, (x) ->` to prevent `it` from being shadowed. LiveScript automatically inserts `it` as first argument of a function when `it` is used in the function body. In this case we want to refer to the global function!
+Note: We must use `(x) ->` to prevent `it` from being shadowed. LiveScript automatically inserts `it` as first argument of a function when `it` is used in the function body. In this case we want to refer to the global function!
 
-Step 2. The Main App
+Step 2. The App Controller
 --------------------
-Our main app simply displays (and controls) a collection of Stock-objects, so we suffice with only a controller:
+Our app simply displays (and controls) a collection of Stock-objects, so we suffice with only a controller:
 ```CoffeeScript
 StockController = require('controllers/stock')
 
@@ -189,49 +206,46 @@ We test release upon destruction in `test/stock_test.ls`:
 		parentElement = $('<div>')		
 		# append our stock to the parent
 		parentElement.append stock.el   
-		expect parentElement.html() .to.not.equal ""
+		expect parentElement.html! .to.not.equal ""
 		# invoke destruction
 		stock.model.destroy()
 		# test
-		expect parentElement.html() .to.equal ""
+		expect parentElement.html! .to.equal ""
 ```
 
-And we test the addition and removal of elements in `test/app_test.ls`
+And we test the addition and removal of elements:
 ```CoffeeScript
+# test/app_test.ls
 App = require('controllers/app')
 
-describe `App`, (x) ->
+describe 'App', (x) ->
 	app = null
 
-	beforeEach, ->
+	beforeEach ->
 		app := new App()
 
-	it `shows Stock-items when they are added`, ->
+	afterEach ->
+		app.release!
+
+	it 'shows Stock-items when they are added', ->
 		app.add "BARC.L"
 		expect app.html() .to.match /BARC\.L/
 
-	it `can remove Stock-items`, ->
+	it 'can remove Stock-items', ->
 		app.add "BARC.L"
 		app.remove "BARC.L"
 		expect app.html .to.not.match /BARC\.L/
 ```
-When you run `brunch test`, you will see the test fails! This is why we test, to write down expected behavior, and to find when our app behaviors differently.
-
-This error is caused because `Stock.findByAttribute` still manages to return a Stock-instance. With every `add` we create a new Stock-instance, even if the symbol already exists in the global collection! So we need to use the existing Stock-instance when we create a Stock-controller. We can do this by modifying the constructor:
-
-```CoffeeScript
-	# bind to existing model if exists
-	@model = Stock.findByAttribute('symbol',symbol)
-	# otherwise, create a fresh model
-	@model = new Stock(symbol:symbol) unless @model?
-```
-
-Now the tests will pass!
 
 Step 3: Styling
 ===============
-We style the stock-view in `app/styles/stock.less`. We need to add `className: 'stock'` to add `stock` to the StockController element. Using LESS mixins, we can create a function that generates everything based on a @size argument. Combined with media-queries, we can easily create a responsive design, i.e:
+I used common LESS mixins from [lesselements.com](http://lesselements.com/) to create gradients, rounded borders, etc. Note that "_elements.less" is prefixed with "_". This ensures Brunch ignores the file and does not compile it, because it is already included in stock.less.
+
+With LESS, it is also easy to create a responsive layout. You simply create a mixin that takes the size as argument, and then call this mixin with different sizes in media-queries. For example:
+
 ```LESS
+// simplified version from app/styles/stock.less
+
 @import "_elements.less"
 
 .stock-layout(@size) {
@@ -249,11 +263,32 @@ We style the stock-view in `app/styles/stock.less`. We need to add `className: '
 	}
 }
 ```
-I also used common LESS mixins from [lesselements.com](http://lesselements.com/) to create gradients, rounded borders, etc. Note that "_elements.less" is prefixed with "_". This ensures Brunch ignores the file and does not compile it, because it is already included in stock.less.
 
 Step 4: Server Functionality
 ============================
-I want Stock to work with both the original Yahoo Finance servers, as well as my own JSON API from a PHP-server. So instead of adding functions directly to the Stock-model, I create mixins. This way, I can add the mixin of choice to my Stock model.
+Stock Prices are fetched from a JSON-API run served by a PHP-script on the server. We can save some requests by combining all stock-prices into a single request.
 
-It will be the most efficient to fetch all the data in one call, so that is why the server-call will be a static method. 
+We saved stock-items in the global Stock collection, so we can easily list the symbols we need to request:
+```CoffeeScript
+	stocks = [stock.symbol for stock in Stock.all!].join ','
+```
 
+We use jQuery to perform an AJAX-request:
+```CoffeeScript
+	$.ajax(
+		url: 'http://www.madebymark.nl/other/stockticker.php'
+		data: { q: stocks }
+		dataType: 'jsonp' #cross-domain, so JSONP
+	).success (data) ~>
+		for symbol,atts of data
+			# try to find existing stock
+			stock = Stock.findByAttribute 'symbol',symbol
+			# otherwise, create a new stock-instance
+			stock = new Stock(symbol:symbol) unless stock?
+			# copy attributes to stock
+			stock <<< atts
+			# save stock to update everything 
+			stock.save!
+	.fail (error) ~>
+		@trigger 'error','ajax',error
+```

@@ -1,15 +1,35 @@
 @import "_elements.less";
+@import "_animation.less";
 
-.stock-layout(@size: 200px,@margin: 40px, @rounded: 5px, @opacity: 0.8) {
+@green:#69ab2a;
+@red: #ce3737;
+@opacity: 0.8;
+
+.stock-layout(@size: 200px,@margin: 40px) {
+	@rounded: 5px;
+
 	width: @size;
 	margin: @margin;
 	
 	.header {
+		position: relative;
 		padding: (@size * 0.05) (@size * 0.05) (@size * 0.1) (@size * 0.05);
 		height: @size * 0.25;
 
 		.border-radius(@rounded,0,0,@rounded);
 		.opacity(@opacity)
+	}
+
+	.close {
+		color: #333;
+		font-family: "Arial", "sans-serif";
+		font-size: @size * 0.08;
+		float: right;
+		top: 5px;
+		right: 5px;
+		cursor: pointer;
+		position: absolute;
+		font-weight: 800;
 	}
 
 	.symbol {
@@ -21,14 +41,19 @@
 	}
 
 	.body {
+		height: @size * 0.60;
 		background: rgba(255,255,255,@opacity);
 		.border-radius(0,@rounded,@rounded,0);
-		padding-bottom: 0.10 * @size;
-		padding-top: 0.05 * @size;
 	}
 
+	.price, .loading {
+		padding-top: 0.05 * @size;
+	}
 	.price {
 		font-size: (@size * 0.75) * 0.35;
+	}
+	.loading {
+		font-size: (@size * 0.75) * 0.15;
 	}
 
 	.percentage {
@@ -39,6 +64,7 @@
 .stock {
 	.stock-layout();
 
+	vertical-align: top;
 	font-family: 'Dosis', sans-serif;
 	font-weight: 600;
 	display: inline-block;
@@ -76,29 +102,30 @@
 	}
 
 	.positive {
-		color: #69ab2a;
+		color: @green;
 	}
 
 	.negative {
-		color: #ce3737;	
+		color: @red;	
 	}
+
 }
 
 @media(max-width: 960px) {
 	.stock {
-		.stock-layout(175px,17px,5px,0.8);
+		.stock-layout(175px,17px);
 	}
 }
 
 @media(max-width: 640px) {
 	.stock {
-		.stock-layout(135px,10px,5px,0.8);
+		.stock-layout(135px,10px);
 	}
 }
 
 @media(max-width: 480px) {
 	.stock {
-		.stock-layout(125px,15px,5px,0.8);
+		.stock-layout(125px,15px);
 		display: block;
 		width: auto;
 	}

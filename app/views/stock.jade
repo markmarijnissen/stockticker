@@ -1,15 +1,18 @@
 .header
 	.symbol #{symbol}
 	.name #{name}
+	.close X
 .body
-	currentPrice = currentPrice.toFixed(2)
-	percentage = percentage.toFixed(2)
-	if currentPrice > 0
-		.price #{currentPrice}
+	price = (currentPrice*1).toFixed(2)
+	percent = (percentage*1).toFixed(2)
+	if openingPrice == "N/A"
+		.loading Invalid name
+	else if currentPrice > 0
+		.price #{price}
 		if percentage > 0
-			.percentage.positive +#{percentage}%
+			.percentage.positive +#{percent}%
 		else
-			.percentage.negative #{percentage}%
+			.percentage.negative #{percent}% 
 	else
 		.loading Loading...
 		.percentage

@@ -1,0 +1,33 @@
+.flash (@color) {
+	0% { background-color: @color; }
+	100% { background-color: rgba(255,255,255,@opacity);}
+}
+
+.animation (...) {
+	-webkit-animation: @arguments;
+	-moz-animation: @arguments;
+	-o-animation: @arguments;
+	animation: @arguments;
+}
+@lighten: 25%;
+.increase {
+	background-color: lighten(@green,@lighten);
+	.animation(flashGreen 1s)
+}
+
+.decrease {
+	background-color: lighten(@red,@lighten);
+	.animation(flashRed 1s)
+}
+
+@-webkit-keyframes flashGreen {.flash(lighten(@green,@lighten));}
+@-moz-keyframes flashGreen {.flash(lighten(@green,@lighten));}
+@-ms-keyframes flashGreen {.flash(lighten(@green,@lighten));}
+@-o-keyframes flashGreen {.flash(lighten(@green,@lighten));}
+@keyframes flashGreen {.flash(lighten(@green,@lighten));}
+
+@-webkit-keyframes flashRed {.flash(lighten(@red,@lighten));}
+@-moz-keyframes flashRed {.flash(lighten(@red,@lighten));}
+@-ms-keyframes flashRed {.flash(lighten(@red,@lighten));}
+@-o-keyframes flashRed {.flash(lighten(@red,@lighten));}
+@keyframes flashRed {.flash(lighten(@red,@lighten));}
