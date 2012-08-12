@@ -1,5 +1,7 @@
 Stock Ticker Tutorial
 ===============
+![Screenshot](markmarijnissen.github.com/thegateway/img/screenshot.png)
+
 Stock Ticker is a modern web-application which displays stock prices in real-time.
 It is build using the following technology:
 
