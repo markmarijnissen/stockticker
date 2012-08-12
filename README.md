@@ -113,7 +113,7 @@ class StockController extends Spine.Controller
 	(attrs) ->
 		super ...
 		symbol = attrs.symbol
-		# bind to existing model if exists
+		# bind to an existing model instance, it it exists
 		@model = Stock.findByAttribute 'symbol',symbol
 		# otherwise, create a fresh model & save it to global collection
 		unless @model?
@@ -174,7 +174,7 @@ describe 'Stock', (x) ->
 ```
 Note: We must use `(x) ->` to prevent `it` from being shadowed. LiveScript automatically inserts `it` as first argument of a function when `it` is used in the function body. In this case we want to refer to the global function!
 
-Step 2. The App Controller
+Step 3. The App Controller
 --------------------
 Our app simply displays (and controls) a collection of Stock-objects, so we suffice with only a controller:
 ```CoffeeScript
@@ -210,7 +210,7 @@ So we add to the StockController constructor:
 ```CoffeeScript
 	@stock.bind 'destroy',@release
 ```
-Step 3: Styling
+Step 4: Styling
 ===============
 I used common LESS mixins from [lesselements.com](http://lesselements.com/) to create gradients, rounded borders, etc. Note that "`_elements.less`" is prefixed with "`_`". This ensures Brunch ignores the file and does not compile it, because it is already included in stock.less.
 
@@ -237,20 +237,18 @@ With LESS, it is also easy to create a responsive layout. You simply create a mi
 }
 ```
 
-Step 4: Server Functionality
+Step 5: Server Functionality
 ============================
 Stock Prices are fetched from a JSON-API run served by a PHP-script on the server. We can save some requests by combining all stock-prices into a single request.
 
-We saved stock-items in the global Stock collection, so we can easily list the symbols we need to request:
-```CoffeeScript
-	stocks = [stock.symbol for stock in Stock.all!].join ','
-```
 
 We use jQuery to perform an AJAX-request:
 ```CoffeeScript
+# app/models/sync.ls
+
 # sync
 sync = ->	
-	# join all stock symbols with a ','
+	# join all stock symbols from global Stock collection with a ','
 	stocks = [stock.symbol for stock in Stock.all!].join ','
 	data = q: stocks
 	if stocks isnt "" 
@@ -279,11 +277,12 @@ onError = (error) -> console.error error
 
 The Server-Side PHP is a simple script that CURLs the Yahoo Server and converts the CSV data to JSON.
 
-Step 5: Animations
+Step 6: Animations
 ==================
-With LESS mixins, I have created two CSS3 animations with all the proper vendor-prefixes.
+I have created CSS3 animations using LESS-mixins to avoid copy-pasting.
 
-We need to update our render function to invoke these animations when a change is detected:
+We need to update our render function to invoke these animations when a change is detected. 
+A change is simply detected by comparing with the value of the previous render:
 ```CoffeeScript
 	# render the template with the Stock model
 	render: ~> 
@@ -293,12 +292,14 @@ We need to update our render function to invoke these animations when a change i
 			@animate 'increase'
 		else if @previousPrice > @model.currentPrice
 			@animate 'decrease'
+		# store 'previous price' to compare with on next render
 		@previousPrice = @model.currentPrice
 ```
-This is simply done by storing the price of the previous render, and calling the appropriate
-animation when the current price changes.
 
-The animation function adds the animation class, triggering the animation. It also **removes** the class when the mediation is done. This serves a double purpose: It ensures the animation will be played when the next price change occurs, but it also supports old browsers. When the browser can't animate, the Stock element will simply show a different background for a brief moment.
+The animation function adds the animation class, triggering the animation. It also **removes** the class when the mediation is done. This serves a double purpose: 
+* It ensures the animation will be played when the next price change occurs
+* It supports old browsers. When the browser can't animate, the Stock element will simply show a different background for a brief moment.
+
 ```
 	animate: (css) ~>
 		$body = @$ '.body'
@@ -306,7 +307,7 @@ The animation function adds the animation class, triggering the animation. It al
 		setTimeout (~> $body.removeClass css),1000ms
 ```
 
-Step 6: Extra's
+Step 7: Extra's
 ==================
 An entire framework might seem a bit heavy for a simple app, but it proves a solid foundation to build on.You could easily create an entire widget-dashboard from this app!
 
