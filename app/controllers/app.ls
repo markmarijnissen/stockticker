@@ -5,7 +5,7 @@ class AppController extends Spine.Controller
 	->
 		super ...
 		@bind 'change',@render
-		[@add symbol for symbol in <[barc ad cla]>]
+		[@add symbol for symbol in <[BARC.L LLOY.L STAN.L]>]
 
 	# create a new StockController, and append the element
 	add: (symbol) -> 

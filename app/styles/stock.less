@@ -1,0 +1,109 @@
+@import "_elements.less";
+
+.stock-layout(@size: 200px,@margin: 40px, @rounded: 5px, @opacity: 0.8) {
+	width: @size;
+	margin: @margin;
+	
+	.header {
+		padding: (@size * 0.05) (@size * 0.05) (@size * 0.1) (@size * 0.05);
+		height: @size * 0.25;
+
+		.border-radius(@rounded,0,0,@rounded);
+		.opacity(@opacity)
+	}
+
+	.symbol {
+		font-size: (@size * 0.25) * 0.30;
+	}
+
+	.name {
+		font-size: (@size * 0.25) * 0.60;
+	}
+
+	.body {
+		background: rgba(255,255,255,@opacity);
+		.border-radius(0,@rounded,@rounded,0);
+		padding-bottom: 0.10 * @size;
+		padding-top: 0.05 * @size;
+	}
+
+	.price {
+		font-size: (@size * 0.75) * 0.35;
+	}
+
+	.percentage {
+		font-size: (@size * 0.75) * 0.15;
+	}
+}
+
+.stock {
+	.stock-layout();
+
+	font-family: 'Dosis', sans-serif;
+	font-weight: 600;
+	display: inline-block;
+	
+	color: #555;
+	.drop-shadow(3px,3px,5px,0.3);
+
+	.header {
+		text-shadow: 1px 1px 1px #eee;
+		text-align: left;
+	
+		border-bottom: solid 1px #a2a6a7;
+		.gradient(#bdc1c4,#bec2c4,#fff);
+	}
+
+	.symbol {
+		color: #777;
+	}
+
+	.name {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.body {
+		text-align: center;
+		border-top: solid 1px #e1e6e8;
+	}
+
+	.price {
+		text-shadow: 1px 2px 2px #eee;
+		color: #6c7d85;
+		font-weight: 800;
+	}
+
+	.positive {
+		color: #69ab2a;
+	}
+
+	.negative {
+		color: #ce3737;	
+	}
+}
+
+@media(max-width: 960px) {
+	.stock {
+		.stock-layout(175px,17px,5px,0.8);
+	}
+}
+
+@media(max-width: 640px) {
+	.stock {
+		.stock-layout(135px,10px,5px,0.8);
+	}
+}
+
+@media(max-width: 480px) {
+	.stock {
+		.stock-layout(125px,15px,5px,0.8);
+		display: block;
+		width: auto;
+	}
+
+	body {
+		padding-top: 0px;
+	}
+}

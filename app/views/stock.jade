@@ -2,10 +2,14 @@
 	.symbol #{symbol}
 	.name #{name}
 .body
+	currentPrice = currentPrice.toFixed(2)
+	percentage = percentage.toFixed(2)
 	if currentPrice > 0
 		.price #{currentPrice}
-		percentageClass = percentage > 0? 'positive' : 'negative'
-		.percentage(class=percentageClass) #{percentage}
+		if percentage > 0
+			.percentage.positive +#{percentage}%
+		else
+			.percentage.negative #{percentage}%
 	else
 		.loading Loading...
 		.percentage

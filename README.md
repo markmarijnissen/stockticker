@@ -65,8 +65,9 @@ class Stock extends Spine.Model
 	
 module.exports = Stock
 ```
+`@configure` tells Spine which attributes the model has. This is used troughout spine.js for storing in localStorage, ajax-request, etc. 
 
-This will be displayed in a `stock view`:
+The model will be displayed with a stock view:
 `app/views/stock.jade`
 ```jade
 .header
@@ -83,7 +84,7 @@ This will be displayed in a `stock view`:
 ```
 As you can see, the view displays loading when the stock information is not yet fetched, and it adds a 'positive' or 'negative' class to the percentage depending on its value.
 
-We will use a controller to connect model with the view:
+Finally, we create a controller to connect model with the view:
 `app/controllers/stock.ls`:
 ```CoffeeScript
 Stock = require('models/stock')
@@ -96,7 +97,8 @@ class StockController extends Spine.Controller
 	(symbol) ->
 		super ...
 		# create a new Stock model
-		@model = new Stock(symbol:symbol)
+		# Spine Model Constructor accepts objects, which set the initial attributes of the instance.
+		@model = new Stock(symbol:symbol) 
 		# render it immediatly
 		@render()
 
@@ -110,7 +112,10 @@ module.exports = StockController
 ### Testing
 
 We already have quite some behavior that we should test to verify it works correctly. 
-We test using TDD/BDD style [chai's](http://chaijs.com/api/bdd/) `expect` grammer, wrapped in `describe` and `it` functions.
+Brunch uses Mocha. We can test by executing `brunch test` or by using the browser runner at [localhost:3333/test](http://localhost:3333/test).
+
+Testing is done with [chai's](http://chaijs.com/api/bdd/) `expect` grammer, which is wrapped in TDD/BDD style 'describe' and 'it' functions.
+
 So we create 'test/stock_test.ls' to test our Model, View and Controller:
 
 ```CoffeeScript
@@ -140,9 +145,7 @@ describe 'Stock', (x) ->
 		stock.render()		
 		expect $(stock.el).find('.percentage').attr('class') .to.match /negative/
 ```
-You can run the test in [http://localhost:333/test/](http://localhost:3333/test) or using `brunch test`. 
-
-Note: We must use `(x) ->` with `describe` to prevent `it` from being shadowed. (causing `it` to reference the first argument of `describe` rather than the global function).
+Note: We must use `describe, (x) ->` to prevent `it` from being shadowed. LiveScript automatically inserts `it` as first argument of a function when `it` is used in the function body. In this case we want to refer to the global function!
 
 Step 2. The Main App
 --------------------
@@ -151,14 +154,10 @@ Our main app simply displays (and controls) a collection of Stock-objects, so we
 StockController = require('controllers/stock')
 
 class AppController extends Spine.Controller
-```CoffeeScript
-StockController = require('controllers/stock')
-
-class AppController extends Spine.Controller
 	->
 		super ...
 		@bind 'change',@render
-		[@add symbol for symbol in <[barc ad cla]>]
+		[@add symbol for symbol in <[BARC.L LLOY.L STAN.L]>]
 
 	# create a new StockController, and append the element
 	add: (symbol) -> 
@@ -196,6 +195,7 @@ We test release upon destruction in `test/stock_test.ls`:
 		# test
 		expect parentElement.html() .to.equal ""
 ```
+
 And we test the addition and removal of elements in `test/app_test.ls`
 ```CoffeeScript
 App = require('controllers/app')
@@ -225,3 +225,35 @@ This error is caused because `Stock.findByAttribute` still manages to return a S
 	# otherwise, create a fresh model
 	@model = new Stock(symbol:symbol) unless @model?
 ```
+
+Now the tests will pass!
+
+Step 3: Styling
+===============
+We style the stock-view in `app/styles/stock.less`. We need to add `className: 'stock'` to add `stock` to the StockController element. Using LESS mixins, we can create a function that generates everything based on a @size argument. Combined with media-queries, we can easily create a responsive design, i.e:
+```LESS
+@import "_elements.less"
+
+.stock-layout(@size) {
+	width: @size;
+	height: @size;
+}
+
+.stock {
+	.stock-layout(200px)
+}
+
+@media(max-width: 640px) {
+	.stock {
+		.stock-layout(150px)
+	}
+}
+```
+I also used common LESS mixins from [lesselements.com](http://lesselements.com/) to create gradients, rounded borders, etc. Note that "_elements.less" is prefixed with "_". This ensures Brunch ignores the file and does not compile it, because it is already included in stock.less.
+
+Step 4: Server Functionality
+============================
+I want Stock to work with both the original Yahoo Finance servers, as well as my own JSON API from a PHP-server. So instead of adding functions directly to the Stock-model, I create mixins. This way, I can add the mixin of choice to my Stock model.
+
+It will be the most efficient to fetch all the data in one call, so that is why the server-call will be a static method. 
+

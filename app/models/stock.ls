@@ -2,11 +2,11 @@ class Stock extends Spine.Model
 	@configure('Stock','name','symbol','currentPrice','openingPrice','percentage')
 	@extend(Spine.Events)
 
-	name: ""				# e.g. "Barcleys"
+	name: "langenaam.....dsadsadsad"				# e.g. "Barcleys"
 	symbol: ""				# e.g. "BARC.L"
-	currentPrice: 0dollar	
+	currentPrice: 100213.10dollar	
 	openingPrice: 0dollar
-	percentage: 0percent
+	percentage: -10.0percent
 
 	->
 		super ...

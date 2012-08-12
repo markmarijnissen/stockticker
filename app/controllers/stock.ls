@@ -3,6 +3,7 @@ template = require('views/stock')
 
 class StockController extends Spine.Controller
 	template: template
+	className: 'stock'
 
 	# constructor
 	(symbol = "") ->
