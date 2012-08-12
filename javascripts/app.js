@@ -305,7 +305,7 @@ window.require.define({"models/sync": function(exports, require, module) {
     return console.error(error);
   };
   sync = function(){
-    var stock, stocks;
+    var stock, stocks, data;
     stocks = (function(){
       var i$, ref$, len$, results$ = [];
       for (i$ = 0, len$ = (ref$ = Stock.all()).length; i$ < len$; ++i$) {
@@ -314,12 +314,16 @@ window.require.define({"models/sync": function(exports, require, module) {
       }
       return results$;
     }()).join(',');
+    data = {
+      q: stocks
+    };
+    if (document.location.href.match(/randomize/)) {
+      data.randomize = true;
+    }
     if (stocks !== "") {
       return $.ajax({
         url: 'http://www.madebymark.nl/other/stockticker.php',
-        data: {
-          q: stocks
-        },
+        data: data,
         dataType: 'jsonp',
         success: onSuccess,
         error: onError

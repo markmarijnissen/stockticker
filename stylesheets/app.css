@@ -196,6 +196,7 @@ body {
 .stock {
   width: 200px;
   margin: 40px;
+  cursor: move;
   vertical-align: top;
   font-family: 'Dosis', sans-serif;
   font-weight: 600;
