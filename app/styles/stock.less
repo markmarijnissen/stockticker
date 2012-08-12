@@ -5,6 +5,7 @@
 @red: #ce3737;
 @opacity: 0.8;
 
+// Stock Layout mixin
 .stock-layout(@size: 200px,@margin: 40px) {
 	@rounded: 5px;
 
@@ -61,8 +62,11 @@
 	}
 }
 
+// Stock other (non-resizing) CSS
 .stock {
 	.stock-layout();
+
+	cursor: move;
 
 	vertical-align: top;
 	font-family: 'Dosis', sans-serif;
@@ -111,6 +115,7 @@
 
 }
 
+// Responsive Design
 @media(max-width: 960px) {
 	.stock {
 		.stock-layout(175px,17px);
@@ -123,6 +128,7 @@
 	}
 }
 
+// The smallest design displays Stock items as bars (i.e. mobile devices)
 @media(max-width: 480px) {
 	.stock {
 		.stock-layout(125px,15px);

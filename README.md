@@ -49,9 +49,8 @@ Step 1. Stock MVC
 -----------------
 First, we create a model, view and controller for a single stock item.
 
-`app/models/stock.ls`:
-
-```LiveScript
+```CoffeeScript
+# app/models/stock.ls
 class Stock extends Spine.Model
 	@configure('Stock','name','symbol','currentPrice','openingPrice','percentage')
 	name: ""				# e.g. "Barcleys"
@@ -291,4 +290,87 @@ We use jQuery to perform an AJAX-request:
 			stock.save!
 	.fail (error) ~>
 		@trigger 'error','ajax',error
+```
+
+The Server-Side PHP is a simple script that CURLs the Yahoo Server and converts the CSV data to JSON.
+
+Step 5: Animations
+==================
+
+Step 6: Extra's
+==================
+An entire framework might seem a bit heavy for a simple app, but it proves a solid foundation to build on.You could easily create an entire widet-dashboard from this app!
+
+Here are some extra's that were easy to add:
+
+### Persistence
+
+Simply by adding `@extend(Spine.Model.Local)` to our Stock model saves the instances to localStorage.
+By calling `Stock.fetch()` upon construction, we retrieve the instances. This saves us waiting for the stock information to come in.
+
+### Sortable
+
+By adding jQuery-UI's sortable plugin, it is easy to drag & drop stock-items to a new position. Simply call `$(...).sortable()` on the container of the Stock-elements.
+
+To remember this order after a reload, we number & save the position of the stock-elements:
+```CoffeeScript
+	# update & save positions when sorting ends
+	onSortStop: ~>
+		# iterate over stock elements
+		$ ".stock" .each (i,el) ->
+			# find the stock element based on value of .symbol div
+			stock = Stock.findByAttribute('symbol',$ el .find '.symbol' .text!)
+			# set & save position
+			stock.position = i
+			stock.save!
+```
+
+When restoring, we sort our stock-items on this position:
+```CoffeeScript
+	saved.sort (a,b) -> a.position > b.position
+```
+
+### Add & Delete
+
+Our app-controller already features addition and removal of stock instances - 
+we only have to create a GUI to leverage this.
+
+So we add an 'X' to the Stock-view, and we create an app-layout:
+```Jade
+// app/views/app.jade
+#container
+#menu
+	input#add-input(type="text")
+	input#add(type="button",value="Add")
+```
+
+And we bind this to adding stock-items:
+```CoffeeScript
+# bind events
+	# app/controllers/app.ls
+	events:
+		'click #add': 'onAddClick'	
+		'keyup #add-input': 'onKeyUp'	
+		"sortstop": "onSortStop"
+
+	onAddClick: ~> @add $('#add-input').val!
+	onKeyUp: (event) ~> if event.keyCode is 13 then @onAddClick!
+
+	# app/controllers/stock.ls
+	events: 
+		"click .close": "onCloseClick"
+
+	onCloseClick: ~> @model.destroy!
+```
+
+With user-input we can suddenly have invalid names, so we update the Stock-view to show this:
+```Jade
+// app/views/stock.jade
+.header
+	// (...)
+.body
+	// (...)
+	if openingPrice == "N/A"
+		.loading Invalid name
+	// (...)
 ```

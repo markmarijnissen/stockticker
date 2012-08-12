@@ -1,31 +1,42 @@
-.flash (@color) {
-	0% { background-color: @color; }
-	100% { background-color: rgba(255,255,255,@opacity);}
-}
+// Animation CSS
 
+// lighten original green and red colors
+@lighten: 25%;
+
+// add animation
 .animation (...) {
 	-webkit-animation: @arguments;
 	-moz-animation: @arguments;
 	-o-animation: @arguments;
 	animation: @arguments;
 }
-@lighten: 25%;
+
+// executes green flash animation
 .increase {
 	background-color: lighten(@green,@lighten);
 	.animation(flashGreen 1s)
 }
 
+// executes red flash animation
 .decrease {
 	background-color: lighten(@red,@lighten);
 	.animation(flashRed 1s)
 }
 
+// Flashes from color back to the orignal opace white background
+.flash (@color) {
+	0% { background-color: @color; }
+	100% { background-color: rgba(255,255,255,@opacity);}
+}
+
+// green flash animation
 @-webkit-keyframes flashGreen {.flash(lighten(@green,@lighten));}
 @-moz-keyframes flashGreen {.flash(lighten(@green,@lighten));}
 @-ms-keyframes flashGreen {.flash(lighten(@green,@lighten));}
 @-o-keyframes flashGreen {.flash(lighten(@green,@lighten));}
 @keyframes flashGreen {.flash(lighten(@green,@lighten));}
 
+// red flash animation
 @-webkit-keyframes flashRed {.flash(lighten(@red,@lighten));}
 @-moz-keyframes flashRed {.flash(lighten(@red,@lighten));}
 @-ms-keyframes flashRed {.flash(lighten(@red,@lighten));}
