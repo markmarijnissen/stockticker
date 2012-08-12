@@ -1,6 +1,6 @@
 Stock Ticker Tutorial
 ===============
-![Screenshot](markmarijnissen.github.com/thegateway/img/screenshot.png)
+![Screenshot](http://markmarijnissen.github.com/thegateway/img/screenshot.png)
 
 Stock Ticker is a modern web-application which displays stock prices in real-time.
 It is build using the following technology:
@@ -32,6 +32,7 @@ Now we have Node.js, the `brunch` command-line tool, and a standard directory la
 |   '-- views			.jade view templates
 |
 |-- public				Contains the compiled web app
+|-- server 				Contains server-side PHP code
 |
 |-- test				
 |   |-- assets			Mocha browser test runner (don't touch)
@@ -198,49 +199,9 @@ So we add to the StockController constructor:
 ```CoffeeScript
 	@stock.bind 'destroy',@release
 ```
-
-### Testing:
-We test release upon destruction in `test/stock_test.ls`:
-```CoffeeScript
-	it "releases the Stock element when the Stock model is destroyed", ->
-		# create a dummy parent element
-		parentElement = $('<div>')		
-		# append our stock to the parent
-		parentElement.append stock.el   
-		expect parentElement.html! .to.not.equal ""
-		# invoke destruction
-		stock.model.destroy()
-		# test
-		expect parentElement.html! .to.equal ""
-```
-
-And we test the addition and removal of elements:
-```CoffeeScript
-# test/app_test.ls
-App = require('controllers/app')
-
-describe 'App', (x) ->
-	app = null
-
-	beforeEach ->
-		app := new App()
-
-	afterEach ->
-		app.release!
-
-	it 'shows Stock-items when they are added', ->
-		app.add "BARC.L"
-		expect app.html() .to.match /BARC\.L/
-
-	it 'can remove Stock-items', ->
-		app.add "BARC.L"
-		app.remove "BARC.L"
-		expect app.html .to.not.match /BARC\.L/
-```
-
 Step 3: Styling
 ===============
-I used common LESS mixins from [lesselements.com](http://lesselements.com/) to create gradients, rounded borders, etc. Note that "_elements.less" is prefixed with "_". This ensures Brunch ignores the file and does not compile it, because it is already included in stock.less.
+I used common LESS mixins from [lesselements.com](http://lesselements.com/) to create gradients, rounded borders, etc. Note that "`_elements.less`" is prefixed with "`_`". This ensures Brunch ignores the file and does not compile it, because it is already included in stock.less.
 
 With LESS, it is also easy to create a responsive layout. You simply create a mixin that takes the size as argument, and then call this mixin with different sizes in media-queries. For example:
 
@@ -276,32 +237,67 @@ We saved stock-items in the global Stock collection, so we can easily list the s
 
 We use jQuery to perform an AJAX-request:
 ```CoffeeScript
-	$.ajax(
-		url: 'http://www.madebymark.nl/other/stockticker.php'
-		data: { q: stocks }
-		dataType: 'jsonp' #cross-domain, so JSONP
-	).success (data) ~>
-		for symbol,atts of data
-			# try to find existing stock
-			stock = Stock.findByAttribute 'symbol',symbol
-			# otherwise, create a new stock-instance
-			stock = new Stock(symbol:symbol) unless stock?
-			# copy attributes to stock
-			stock <<< atts
-			# save stock to update everything 
-			stock.save!
-	.fail (error) ~>
-		@trigger 'error','ajax',error
+# sync
+sync = ->	
+	# join all stock symbols with a ','
+	stocks = [stock.symbol for stock in Stock.all!].join ','
+	data = q: stocks
+	if stocks isnt "" 
+		$.ajax do
+			url: 'http://www.madebymark.nl/other/stockticker.php'
+			data: data
+			dataType: 'jsonp' #cross-domain, so JSONP
+			success: onSuccess
+			error: onError
+
+onSuccess = (data) ->
+	if data is "ERROR_NO_ARGUMENTS" then @onSyncError data
+	else for symbol,atts of data
+		# try to find existing stock
+		stock = Stock.findByAttribute 'symbol',symbol
+		# otherwise, create a new stock-instance
+		stock = new Stock(symbol:symbol) unless stock?
+		# copy attributes to stock
+		stock <<< atts
+		# save stock to update everything 
+		stock.save()
+
+# sync error callback
+onError = (error) -> console.error error
 ```
 
 The Server-Side PHP is a simple script that CURLs the Yahoo Server and converts the CSV data to JSON.
 
 Step 5: Animations
 ==================
+With LESS mixins, I have created two CSS3 animations with all the proper vendor-prefixes.
+
+We need to update our render function to invoke these animations when a change is detected:
+```CoffeeScript
+	# render the template with the Stock model
+	render: ~> 
+		@html @template(@model)
+		# animate a flash when the price changes
+		if @previousPrice < @model.currentPrice then 
+			@animate 'increase'
+		else if @previousPrice > @model.currentPrice
+			@animate 'decrease'
+		@previousPrice = @model.currentPrice
+```
+This is simply done by storing the price of the previous render, and calling the appropriate
+animation when the current price changes.
+
+```
+	animate: (css) ~>
+		$body = @$ '.body'
+		$body.addClass css		
+		setTimeout (~> $body.removeClass css),1000ms
+```
+The animation function adds the animation class, triggering the animation. It also **removes** the class when the mediation is done. This servers a double purpose: It ensures the animation will be played when the next price change occurs, but it also supports old browsers. When the browser can't animate, the Stock element will simply show a different background for a brief moment.
 
 Step 6: Extra's
 ==================
-An entire framework might seem a bit heavy for a simple app, but it proves a solid foundation to build on.You could easily create an entire widet-dashboard from this app!
+An entire framework might seem a bit heavy for a simple app, but it proves a solid foundation to build on.You could easily create an entire widget-dashboard from this app!
 
 Here are some extra's that were easy to add:
 
@@ -376,3 +372,7 @@ With user-input we can suddenly have invalid names, so we update the Stock-view 
 		.loading Invalid name
 	// (...)
 ```
+
+Questions & Comments
+====================
+Feel free to contact me for questions, comments and feedback.
