@@ -2,6 +2,8 @@ Stock Ticker Tutorial
 ===============
 ![Screenshot](http://markmarijnissen.github.com/thegateway/img/screenshot.png)
 
+View [demo here](http://markmarijnissen.github.com/thegateway).
+
 Stock Ticker is a modern web-application which displays stock prices in real-time.
 It is build using the following technology:
 
@@ -178,11 +180,14 @@ class AppController extends Spine.Controller
 		@bind 'change',@render
 		[@add symbol for symbol in <[BARC.L LLOY.L STAN.L]>]
 
-	# create a new StockController, and append the element
+	# add stock item
 	add: (symbol) -> 
-		stock = new StockController(symbol)
-		stock.model.save() 
-		@append stock
+		# only add if symbol is valid and not added before
+		# the 'added-before' check is a bit dirty but effective; it checks if 
+		# the symbol occurs in the HTML
+		if typeof symbol is 'string' and symbol isnt "" and not @el.html().match(">#symbol<") 
+			stock = new StockController(symbol:symbol)
+			@append stock.el
 
 	# find and destroy the Stock, which destroys the controller, which destroys the element.
 	remove: (symbol) -> Stock.findByAttribute('symbol',symbol).destroy()
@@ -287,13 +292,13 @@ We need to update our render function to invoke these animations when a change i
 This is simply done by storing the price of the previous render, and calling the appropriate
 animation when the current price changes.
 
+The animation function adds the animation class, triggering the animation. It also **removes** the class when the mediation is done. This serves a double purpose: It ensures the animation will be played when the next price change occurs, but it also supports old browsers. When the browser can't animate, the Stock element will simply show a different background for a brief moment.
 ```
 	animate: (css) ~>
 		$body = @$ '.body'
 		$body.addClass css		
 		setTimeout (~> $body.removeClass css),1000ms
 ```
-The animation function adds the animation class, triggering the animation. It also **removes** the class when the mediation is done. This servers a double purpose: It ensures the animation will be played when the next price change occurs, but it also supports old browsers. When the browser can't animate, the Stock element will simply show a different background for a brief moment.
 
 Step 6: Extra's
 ==================
