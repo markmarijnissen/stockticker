@@ -5,6 +5,12 @@ Stock Ticker Tutorial
 View [demo here](http://markmarijnissen.github.com/thegateway).
 
 Stock Ticker is a modern web-application which displays stock prices in real-time.
+* Responsive layout
+* Add & Remove Stock-items
+* Drag & Drop
+* Persistance
+* CSS3 animations
+
 It is build using the following technology:
 
 * **jQuery** and **[Spine.js](http://www.spinejs.com)**, a MCV framework
