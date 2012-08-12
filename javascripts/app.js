@@ -142,10 +142,7 @@ window.require.define({"controllers/app": function(exports, require, module) {
       });
     };
     prototype.render = function(){
-      this.html("");
-      this.append($('<div id="container">'));
-      this.append($('<div id="menu">'));
-      $('#menu').html(this.template(this));
+      this.html(this.template(this));
       return $('#container').sortable();
     };
     Stock.fetch();
@@ -355,7 +352,7 @@ window.require.define({"views/app": function(exports, require, module) {
   var buf = [];
   with (locals || {}) {
   var interp;
-  buf.push('<input id="add-input" type="text"/><input id="add" type="button" value="Add"/>');
+  buf.push('<div id="container"></div><div id="menu"><input id="add-input" type="text"/><input id="add" type="button" value="Add"/></div>');
   }
   return buf.join("");
   };
