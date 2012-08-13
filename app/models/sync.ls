@@ -2,7 +2,7 @@ Stock = require('models/stock')
 
 # sync success callback	
 onSuccess = (data) ->
-	if data is "ERROR_NO_ARGUMENTS" then @onSyncError data
+	if data is "ERROR_NO_ARGUMENTS" then onError data
 	else for symbol,atts of data
 		# try to find existing stock
 		stock = Stock.findByAttribute 'symbol',symbol

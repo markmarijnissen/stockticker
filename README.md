@@ -1,15 +1,15 @@
-Stock Ticker Tutorial
+Stock Ticker Walktrough
 ===============
 ![Screenshot](http://markmarijnissen.github.com/thegateway/img/screenshot.png)
 
 View [demo here](http://markmarijnissen.github.com/thegateway).
 
 Stock Ticker is a modern web-application which displays stock prices in real-time.
-* Responsive layout
+* Responsive & Mobile-friendly layout
 * Add & Remove Stock-items
-* Drag & Drop
-* Persistance
-* CSS3 animations
+* Drag & Drop to reorder items
+* Persistance using localStorage
+* CSS3 animations on stock updates
 
 It is build using the following technology:
 
@@ -22,6 +22,10 @@ It is build using the following technology:
 Brunch can also watch your files and run a local server, which means LiveScript, Jade and LESS get continuously compiled, concatenated and minified, and you only have to refresh the browser to view the app.
 
 All these tools run on [Node.js](http://nodejs.org/)
+
+I assume you already have knowledge of the MVC design pattern, HTML, CSS and JavaScript. For a deeper understanding, I refer you to the documentation of [Spine.js](http://spinejs.com/docs), [Mocha](http://visionmedia.github.com/mocha/), [Brunch](http://www.brunch.io), [Jade](https://github.com/visionmedia/jade#readme), [LiveScript](http://gkz.github.com/LiveScript/) and [LESS](http://www.lesscss.org) if want to learn more.
+
+What follows is an short walktrough on how this app is build.
 
 Step 0. Installation
 --------------------
@@ -75,19 +79,25 @@ class Stock extends Spine.Model
 	
 module.exports = Stock
 ```
-`@configure` defines the class name and attributes. This is used troughout Spine.js, for example when saving and searching instances in the global Stock collection.
+`@configure` defines the class name and attributes. This is used throughout Spine.js, for example when saving and searching instances in the global Stock collection.
+
+We will use this global Stock collection to keep track of all stock-items. This allows us to save everything for persistence, and to join all stock-items in a single request for the Yahoo Stock server.
 
 The model will be displayed with a stock view:
 `app/views/stock.jade`
 ```jade
 .header
 	.symbol #{symbol}
-	.name #{name}
+	.name(title=name) #{name}
 .body
-	if price > 0
+	price = (currentPrice*1).toFixed(2)
+	percent = (percentage*1).toFixed(2)
+	if currentPrice > 0
 		.price #{price}
-		percentageClass = percentage > 0? 'positive' : 'negative'
-		.percentage(class=percentageClass) #{percentage}
+		if percentage > 0
+			.percentage.positive +#{percent}%
+		else
+			.percentage.negative #{percent}% 
 	else
 		.loading Loading...
 		.percentage
@@ -97,7 +107,9 @@ As you can see, the template has a little display logic:
 * It adds 'positive' or 'negative' styling to the percentage.
 * It formats the numbers
 
-Finally, a controller connects the view with the model. Controllers deal with rendering templates, responding to DOM events, and they keep the model and view in sync. Spine.js controllers have a DOM element associated with it, and some convenience methods to manipulate it.
+Finally, a controller connects the view with the model. Controllers deal with rendering templates and responding to DOM events. They are the 'glue' that keeps the model and view in sync. Spine.js controllers have a DOM element associated with it, and some convenience methods to manipulate it.
+
+Here is how we connect the controller with the view:
 
 ```CoffeeScript
 # /app/controllers/stock.ls
@@ -111,14 +123,7 @@ class StockController extends Spine.Controller
 
 	# constructor
 	(attrs) ->
-		super ...
-		symbol = attrs.symbol
-		# bind to an existing model instance, it it exists
-		@model = Stock.findByAttribute 'symbol',symbol
-		# otherwise, create a fresh model & save it to global collection
-		unless @model?
-			@model = new Stock symbol:symbol
-			@model = @model.save! 
+		super ... 
 		# re-render view upon model change
 		@model.bind 'change',@render
 		# render upon creation
@@ -130,14 +135,25 @@ class StockController extends Spine.Controller
 module.exports = StockController
 ```
 
+We also need to connect it with the model. We can just create a model, but that will allow us to create duplicate instances of a single stock. To avoid this, we first check if the model is already available in the global Stock collection.
 
+We add this code to the contructor:
+```CoffeeScript
+	symbol = attrs.symbol
+	# bind to an existing model instance, it it exists
+	@model = Stock.findByAttribute 'symbol',symbol
+	# otherwise, create a fresh model & save it to global collection
+	unless @model?
+		@model = new Stock symbol:symbol
+		@model = @model.save!
+```
 
 Step 2. Testing
 ---------------
 We should test if our app behaves as expected. We use [Mocha](http://visionmedia.github.com/mocha/) as testing framework. Test are executed using `brunch test` or by using the browser runner at [localhost:3333/test](http://localhost:3333/test).
 
-`brunch test` is run in Node.js, and calls `test_helpers.coffee` to include necessary libraries, such as 
-[chai.js'](http://chaijs.com/api/bdd/) 'expect' grammar.
+`brunch test` is run in Node.js, and calls `test_helpers.coffee` to include necessary libraries, such the 
+[chai.js](http://chaijs.com/api/bdd/) **expect** grammar.
 
 ```CoffeeScript
 # /test/stock_test.ls
@@ -153,7 +169,7 @@ describe 'Stock', (x) ->
 		expect $(stock.el).find('div.header') .to.be.ok
 
 	it 'shows "loading" when no information has been retrieved',->
-		expect $(stock.el).find('.loading') .to.be.not.empty # it exists when $ is not empty
+		expect $(stock.el).find('.loading') .to.be.ok
 		expect $(stock.el).find('.loading').html! .to.match /loading/i # and it says loading
 
 	it 'show positive percentages in "green"',->
@@ -176,7 +192,7 @@ Note: We must use `(x) ->` to prevent `it` from being shadowed. LiveScript autom
 
 Step 3. The App Controller
 --------------------
-Our app simply displays (and controls) a collection of Stock-objects, so we suffice with only a controller:
+Our main application is simply a collection of stock-items, so we only need a controller to add and remove stock-items:
 ```CoffeeScript
 StockController = require('controllers/stock')
 
@@ -186,23 +202,20 @@ class AppController extends Spine.Controller
 		@bind 'change',@render
 		[@add symbol for symbol in <[BARC.L LLOY.L STAN.L]>]
 
-	# add stock item
-	add: (symbol) -> 
+	# create a new StockController, and append the element
+	add: (symbol,override = no) -> 
 		# only add if symbol is valid and not added before
 		# the 'added-before' check is a bit dirty but effective; it checks if 
 		# the symbol occurs in the HTML
-		if typeof symbol is 'string' and symbol isnt "" and not @el.html().match(">#symbol<") 
+		if typeof symbol is \string and (override or Stock.findByAttribute('symbol',symbol.toUpperCase!) is null)
 			stock = new StockController(symbol:symbol)
-			@append stock.el
+			$('#container').append stock.el
 
 	# find and destroy the Stock, which destroys the controller, which destroys the element.
 	remove: (symbol) -> Stock.findByAttribute('symbol',symbol).destroy()
 					
 module.exports = AppController
 ```
-Note how we call `save` to save the stock-instance to the global Stock collection. 
-This allows us to find and remove the stock-instance later on with `Stock.findByAttribute`
-
 To remove the element upon destruction of the Stock model instance, we need to bind the 
 destroy event of the model to the release function of the controller.
 
@@ -210,14 +223,13 @@ So we add to the StockController constructor:
 ```CoffeeScript
 	@stock.bind 'destroy',@release
 ```
-Step 4: Styling
-===============
-I used common LESS mixins from [lesselements.com](http://lesselements.com/) to create gradients, rounded borders, etc. Note that "`_elements.less`" is prefixed with "`_`". This ensures Brunch ignores the file and does not compile it, because it is already included in stock.less.
 
-With LESS, it is also easy to create a responsive layout. You simply create a mixin that takes the size as argument, and then call this mixin with different sizes in media-queries. For example:
+Step 4: Styling: Responsive Layout
+==================================
+With LESS, it is also easy to create a responsive layout. You simply create a mixin that takes the size as argument, and then call this mixin with different sizes in media-queries. Below is a simplified version:
 
-```LESS
-// simplified version from app/styles/stock.less
+```CSS
+// simplified version of "app/styles/stock.less"
 
 @import "_elements.less"
 
@@ -241,7 +253,6 @@ Step 5: Server Functionality
 ============================
 Stock Prices are fetched from a JSON-API run served by a PHP-script on the server. We can save some requests by combining all stock-prices into a single request.
 
-
 We use jQuery to perform an AJAX-request:
 ```CoffeeScript
 # app/models/sync.ls
@@ -260,7 +271,7 @@ sync = ->
 			error: onError
 
 onSuccess = (data) ->
-	if data is "ERROR_NO_ARGUMENTS" then @onSyncError data
+	if data is "ERROR_NO_ARGUMENTS" then onError data
 	else for symbol,atts of data
 		# try to find existing stock
 		stock = Stock.findByAttribute 'symbol',symbol
@@ -279,10 +290,12 @@ The Server-Side PHP is a simple script that CURLs the Yahoo Server and converts 
 
 Step 6: Animations
 ==================
-I have created CSS3 animations using LESS-mixins to avoid copy-pasting.
+I have created CSS3 animations to flash green or red when the stock-price changes.
+We need to update the render function to invoke these animations.
 
-We need to update our render function to invoke these animations when a change is detected. 
-A change is simply detected by comparing with the value of the previous render:
+We simply store the price each time we render the stock template, so we can compare on each render
+whether a change has occured and we need to invoke an animation:
+
 ```CoffeeScript
 	# render the template with the Stock model
 	render: ~> 
@@ -296,36 +309,28 @@ A change is simply detected by comparing with the value of the previous render:
 		@previousPrice = @model.currentPrice
 ```
 
-The animation function adds the animation class, triggering the animation. It also **removes** the class when the mediation is done. This serves a double purpose: 
-* It ensures the animation will be played when the next price change occurs
-* It supports old browsers. When the browser can't animate, the Stock element will simply show a different background for a brief moment.
+The animation function adds and removes the animation-class. This causes gracefull degradation in old browsers: When animations are not supported, the stock-view simply shows a different background for a brief moment. In never browers, removing the animation class ensures we can invoke the animation again on the next change.
 
-```
+```CoffeeScript
 	animate: (css) ~>
 		$body = @$ '.body'
 		$body.addClass css		
 		setTimeout (~> $body.removeClass css),1000ms
 ```
 
-Step 7: Extra's
-==================
-An entire framework might seem a bit heavy for a simple app, but it proves a solid foundation to build on.You could easily create an entire widget-dashboard from this app!
-
-Here are some extra's that were easy to add:
-
-### Persistence
-
-Simply by adding `@extend(Spine.Model.Local)` to our Stock model saves the instances to localStorage.
+Step 7: Persistence
+===================
+Adding `@extend(Spine.Model.Local)` to our Stock model saves the instances to localStorage.
 By calling `Stock.fetch()` upon construction, we retrieve the instances. This saves us waiting for the stock information to come in.
 
-### Sortable
-
-By adding jQuery-UI's sortable plugin, it is easy to drag & drop stock-items to a new position. Simply call `$(...).sortable()` on the container of the Stock-elements.
+Step 8: Re-order items with drag & drop
+=======================================
+By adding jQuery-UI's sortable plugin, it is easy to drag & drop stock-items to a new position. We call `$(...).sortable()` on the container of the Stock-elements.
 
 To remember this order after a reload, we number & save the position of the stock-elements:
 ```CoffeeScript
 	# update & save positions when sorting ends
-	onSortStop: ~>
+	savePosition: ~>
 		# iterate over stock elements
 		$ ".stock" .each (i,el) ->
 			# find the stock element based on value of .symbol div
@@ -335,13 +340,13 @@ To remember this order after a reload, we number & save the position of the stoc
 			stock.save!
 ```
 
-When restoring, we sort our stock-items on this position:
+When fetching saved data from localStorage, we sort our stock-items on position:
 ```CoffeeScript
 	saved.sort (a,b) -> a.position > b.position
 ```
 
-### Add & Delete
-
+Step 9: Adding and removing Stock-items
+=======================================
 Our app-controller already features addition and removal of stock instances - 
 we only have to create a GUI to leverage this.
 

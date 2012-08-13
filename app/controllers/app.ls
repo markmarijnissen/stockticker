@@ -13,15 +13,16 @@ class AppController extends Spine.Controller
 		# render base layout
 		@render!
 		# retrieve saved stock instances, if any
+		console.log('fetch',Stock.fetch())
 		saved = Stock.all()
 		#nothing found, just add defaults
 		if saved.length is 0
-			[@add symbol for symbol in <[BARC.L LLOY.L STAN.L]>] 
+			[@add symbol,yes for symbol in <[BARC.L LLOY.L STAN.L]>] 
 		# instanced found, add them
 		else
 			# sort stock instances based on position from drag & drop
 			saved.sort (a,b) -> a.position > b.position
-			[@add stock.symbol for stock in saved]
+			[@add stock.symbol,yes for stock in saved]
 		
 	# bind events
 	events:
@@ -30,13 +31,14 @@ class AppController extends Spine.Controller
 		"sortstop": "onSortStop"
 
 	# create a new StockController, and append the element
-	add: (symbol) -> 
+	add: (symbol,override = no) -> 
 		# only add if symbol is valid and not added before
 		# the 'added-before' check is a bit dirty but effective; it checks if 
 		# the symbol occurs in the HTML
-		if typeof symbol is 'string' and symbol isnt "" and not @el.html().match(">#symbol<") 
+		if typeof symbol is \string and (override or Stock.findByAttribute('symbol',symbol.toUpperCase!) is null)
 			stock = new StockController(symbol:symbol)
 			$('#container').append stock.el
+			@savePosition!
 
 	# find and destroy the Stock, which destroys the controller, which destroys the element.
 	remove: (symbol) -> Stock.findByAttribute('symbol',symbol)?.destroy()
@@ -46,7 +48,7 @@ class AppController extends Spine.Controller
 	onKeyUp: (event) ~> if event.keyCode is 13 then @onAddClick!
 
 	# update & save positions when sorting ends
-	onSortStop: ~>
+	savePosition: ~>
 		# iterate over stock elements
 		$ ".stock" .each (i,el) ->
 			# find the stock element based on value of .symbol div
@@ -59,7 +61,5 @@ class AppController extends Spine.Controller
 	render: ->
 		@html @template(@)		
 		$ '#container' .sortable!
-
-	Stock.fetch()
 					
 module.exports = AppController
