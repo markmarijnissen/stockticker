@@ -43,3 +43,4 @@ stop = -> clearInterval timer
 module.exports = 
 		start: start
 		stop: stop
+		sync: sync

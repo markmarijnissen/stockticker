@@ -1,7 +1,7 @@
 class Stock extends Spine.Model
 	@configure('Stock','name','symbol','currentPrice','openingPrice','percentage','position')
 	@extend(Spine.Events)
-	@extend(Spine.Model.Local)
+	@extend(Spine.Model.Local) if Spine.Model.Local?
 
 	name: ""				# e.g. "Barcleys"
 	symbol: ""				# e.g. "BARC.L"

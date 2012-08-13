@@ -13,19 +13,21 @@ describe 'Stock', (x) ->
 		expect $(stock.el).find('.loading').html! .to.match /loading/i # and it says loading
 
 	it 'show positive percentages in "green"',->
-		stock = new StockController
-			symbol: 'TEST'
-			currentPrice: 10 # initialize stock
-			percentage: 0.1 # with positive percentage
+		stock = new StockController(symbol: 'TEST')
+		stock.model.currentPrice = 10 # initialize stock
+		stock.model.percentage = 0.1 # with positive percentage
+		stock.render!
 
+		expect stock.model.percentage .to.be.above 0
 		expect $(stock.el).find('.percentage').attr('class') .to.match /positive/
 
 	it 'show negative percentages in "red"',->
-		stock = new StockController
-			symbol: 'TEST'
-			currentPrice: 10 # initialize stock
-			percentage: -0.1 # with positive percentage
+		stock = new StockController(symbol: 'TEST')
+		stock.model.currentPrice = 10 # initialize stock
+		stock.model.percentage = -0.1 # with positive percentage
+		stock.render!
 
+		expect stock.model.percentage .to.be.below 0
 		expect $(stock.el).find('.percentage').attr('class') .to.match /negative/
 
 	it "releases the Stock element when the Stock model is destroyed", ->

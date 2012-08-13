@@ -17,7 +17,6 @@
     loadLocal: function() {
       var result;
       result = localStorage[this.className];
-      alert(result);
       return this.refresh(result || [], {
         clear: true
       });
