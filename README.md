@@ -203,13 +203,11 @@ class AppController extends Spine.Controller
 		[@add symbol for symbol in <[BARC.L LLOY.L STAN.L]>]
 
 	# create a new StockController, and append the element
-	add: (symbol,override = no) -> 
+	add: (symbol,override = no) ~> 
 		# only add if symbol is valid and not added before
-		# the 'added-before' check is a bit dirty but effective; it checks if 
-		# the symbol occurs in the HTML
-		if typeof symbol is \string and (override or Stock.findByAttribute('symbol',symbol.toUpperCase!) is null)
+		if typeof symbol is 'string' and (override or Stock.findByAttribute('symbol',symbol.toUpperCase!) is null)
 			stock = new StockController(symbol:symbol)
-			$('#container').append stock.el
+			$(@el).find '.container' .append stock.el
 
 	# find and destroy the Stock, which destroys the controller, which destroys the element.
 	remove: (symbol) -> Stock.findByAttribute('symbol',symbol).destroy()
