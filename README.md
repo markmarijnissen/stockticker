@@ -357,12 +357,10 @@ So we add an 'X' to the Stock-view, and we create an app-layout:
 
 And we bind this to adding stock-items:
 ```CoffeeScript
-# bind events
 	# app/controllers/app.ls
 	events:
 		'click #add': 'onAddClick'	
 		'keyup #add-input': 'onKeyUp'	
-		"sortstop": "onSortStop"
 
 	onAddClick: ~> @add $('#add-input').val!
 	onKeyUp: (event) ~> if event.keyCode is 13 then @onAddClick!
