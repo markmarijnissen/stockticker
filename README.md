@@ -1,8 +1,10 @@
-Stock Ticker Walktrough
+Stock Ticker
 ===============
-![Screenshot](http://markmarijnissen.github.com/thegateway/img/screenshot.png)
+![Screenshot](http://markmarijnissen.github.com/stockticker/img/screenshot.png)
 
-View [demo here](http://markmarijnissen.github.com/thegateway), or run the [test suite](http://markmarijnissen.github.com/thegateway/test)
+View [demo here](http://markmarijnissen.github.com/stockticker), or run the [test suite](http://markmarijnissen.github.com/stockticker/test)
+
+What follows is a short walkthrough on how the app is build.
 
 Stock Ticker is a modern web-application which displays stock prices in real-time.
 * Responsive & Mobile-friendly layout
@@ -24,8 +26,6 @@ Brunch can also watch your files and run a local server, which means LiveScript,
 All these tools run on [Node.js](http://nodejs.org/)
 
 I assume you already have knowledge of the MVC design pattern, HTML, CSS and JavaScript. For a more thorough understanding, I refer you to the documentation: [Spine.js](http://spinejs.com/docs), [Mocha](http://visionmedia.github.com/mocha/), [Brunch](http://www.brunch.io), [Jade](https://github.com/visionmedia/jade#readme), [LiveScript](http://gkz.github.com/LiveScript/) and [LESS](http://www.lesscss.org)
-
-What follows is an short walktrough on how this app is build.
 
 Step 0. Installation
 --------------------
