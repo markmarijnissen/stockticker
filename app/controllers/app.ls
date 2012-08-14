@@ -60,6 +60,6 @@ class AppController extends Spine.Controller
 	# render menu from template
 	render: ~>
 		@html @template(@)		
-	$(@el).find '.container' .sortable!
+		$(@el).find('.container').sortable!
 					
 module.exports = AppController

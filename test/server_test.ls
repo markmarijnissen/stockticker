@@ -14,7 +14,6 @@ describe "Server", (x) ->
 				goog = data.GOOG
 
 				expect xxx .to.have.property "openingPrice","N/A"
-				expect goog.openingPrice .to.be.a "number"
 				expect goog.currentPrice .to.be.a "number"
 				expect goog.percentage .to.be.a "number"
 				expect goog .to.have.property "symbol","GOOG"

@@ -14,13 +14,13 @@
 // executes green flash animation
 .increase {
 	background-color: lighten(@green,@lighten);
-	.animation(flashGreen 1s)
+	.animation(flashGreen 1s) // 1.0 s looked better than 0.5s
 }
 
 // executes red flash animation
 .decrease {
 	background-color: lighten(@red,@lighten);
-	.animation(flashRed 1s)
+	.animation(flashRed 1s) 
 }
 
 // Flashes from color back to the orignal opace white background

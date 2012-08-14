@@ -2,7 +2,7 @@ Stock Ticker Walktrough
 ===============
 ![Screenshot](http://markmarijnissen.github.com/thegateway/img/screenshot.png)
 
-View [demo here](http://markmarijnissen.github.com/thegateway).
+View [demo here](http://markmarijnissen.github.com/thegateway), or run the [test suite](http://markmarijnissen.github.com/thegateway/test)
 
 Stock Ticker is a modern web-application which displays stock prices in real-time.
 * Responsive & Mobile-friendly layout
@@ -389,6 +389,26 @@ With user-input we can suddenly have invalid names, so we update the Stock-view 
 		.loading Invalid name
 	// (...)
 ```
+
+Step 10. Mobile Debugging
+=========================
+When running the web-app on Android, persistence did not work correctly. But how do you debug a mobile device? We use [Weinre](http://people.apache.org/~pmuellr/weinre/docs/latest/Home.html) - **WE**b **IN**spector **RE**mote.
+
+```Bash
+npm install weinre -g
+weinre --boundHost -all-
+```
+Now connect your android to the same WIFI as your computer, and look up the IP-adress:
+```Bash
+ifconfig | grep "inet addr"
+```
+Then we insert this script to `app/assets/index.html`:
+```HTML
+<script src="http://192.168.2.58:8080/target/target-script-min.js#anonymous"></script>
+```
+
+As it turns out, Spine.js' local library had a bug: `JSON.stringify(this)` was used to serialize the Stock collection. However, on Android, it does not implicitly call `this.toJSON()` as on desktop browsers, so we had to explicitly call `toJSON()` to fix the bug. (Pull request send!)
+
 
 Questions & Comments
 ====================

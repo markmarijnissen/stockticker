@@ -30,6 +30,25 @@ describe 'Stock', (x) ->
 		expect stock.model.percentage .to.be.below 0
 		expect $(stock.el).find('.percentage').attr('class') .to.match /negative/
 
+	it 'animates a positive change with a green flash',(done)->
+		stock.model.currentPrice = 10
+		stock.render!
+		$body = $(stock.el).find('.body')
+		expect $body.attr('class') .to.match /increase/
+		setTimeout (-> expect $body.attr('class') .to.not.match /increase/; done!),1050ms
+
+	it 'animates a negative change with a red flash',(done) ->
+		stock.model.currentPrice = -10
+		stock.render!
+		$body = $(stock.el).find('.body')
+		expect $body.attr('class') .to.match /decrease/
+		setTimeout (-> expect $body.attr('class') .to.not.match /decrease/; done!),1050ms
+
+	it 'does not animate no change',->
+		stock.render!
+		stock.render!
+		expect $(stock.el).find('.body').attr('class') .to.not.match /(increase|decrease)/
+
 	it "releases the Stock element when the Stock model is destroyed", ->
 		# create a dummy parent element
 		parentElement = $('<div>')		

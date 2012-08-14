@@ -5,7 +5,7 @@
 .body
 	price = (currentPrice*1).toFixed(2)
 	percent = (percentage*1).toFixed(2)
-	if openingPrice == "N/A"
+	if currentPrice == 0
 		.loading Invalid name
 	else if currentPrice > 0
 		.price #{price}
