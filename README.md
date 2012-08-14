@@ -229,8 +229,6 @@ With LESS, it is also easy to create a responsive layout. You simply create a mi
 ```CSS
 // simplified version of "app/styles/stock.less"
 
-@import "_elements.less"
-
 .stock-layout(@size) {
 	width: @size;
 	height: @size;
