@@ -35,7 +35,7 @@ class AppController extends Spine.Controller
 		# only add if symbol is valid and not added before
 		# the 'added-before' check is a bit dirty but effective; it checks if 
 		# the symbol occurs in the HTML
-		if typeof symbol is \string and (override or Stock.findByAttribute('symbol',symbol.toUpperCase!) is null)
+		if typeof symbol is \string and symbol isnt "" and (override or Stock.findByAttribute('symbol',symbol.toUpperCase!) is null)
 			stock = new StockController(symbol:symbol)
 			$(@el).find '.container' .append stock.el
 			@savePosition!
