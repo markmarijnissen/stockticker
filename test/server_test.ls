@@ -2,7 +2,7 @@ describe "Server", (x) ->
 
 	it "gives a correct response", (done)->
 		$.ajax do
-			url: 'http://www.madebymark.nl/other/stockticker.php'
+			url: 'http://data.madebymark.nl/other/stockticker.php'
 			data: q: "BARC.L,GOOG,XXX"
 			dataType: 'jsonp' #cross-domain, so JSONP
 			success: (data) -> 
@@ -22,7 +22,7 @@ describe "Server", (x) ->
 
 	it "gives an error when no arguments are supplied", (done) ->
 		$.ajax do
-			url: 'http://www.madebymark.nl/other/stockticker.php'
+			url: 'http://data.madebymark.nl/other/stockticker.php'
 			dataType: 'jsonp' #cross-domain, so JSONP
 			success: (data) -> 
 				expect data .to.equal "ERROR_NO_ARGUMENTS"

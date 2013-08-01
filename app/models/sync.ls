@@ -27,7 +27,7 @@ sync = ->
 	# when we have any stock, perform ajax
 	if stocks isnt "" 
 		$.ajax do
-			url: 'http://www.madebymark.nl/other/stockticker.php'
+			url: 'http://data.madebymark.nl/other/stockticker.php'
 			data: data
 			dataType: 'jsonp' #cross-domain, so JSONP
 			success: onSuccess
