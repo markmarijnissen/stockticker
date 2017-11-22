@@ -25,7 +25,7 @@ Brunch can also watch your files and run a local server, which means LiveScript,
 
 All these tools run on [Node.js](http://nodejs.org/)
 
-I assume you already have knowledge of the MVC design pattern, HTML, CSS and JavaScript. For a more thorough understanding, I refer you to the documentation: [Spine.js](http://spinejs.com/docs), [Mocha](http://visionmedia.github.com/mocha/), [Brunch](http://www.brunch.io), [Jade](https://github.com/visionmedia/jade#readme), [LiveScript](http://gkz.github.com/LiveScript/) and [LESS](http://www.lesscss.org)
+I assume you already have knowledge of the MVC design pattern, HTML, CSS and JavaScript. For a more thorough understanding, I refer you to the documentation: [Spine.js](http://spinejs.com/docs), [Mocha](http://mochajs.org/), [Brunch](http://www.brunch.io), [Jade](https://github.com/visionmedia/jade#readme), [LiveScript](http://gkz.github.com/LiveScript/) and [LESS](http://www.lesscss.org)
 
 Step 0. Installation
 --------------------
@@ -150,7 +150,7 @@ We add this code to the contructor:
 
 Step 2. Testing
 ---------------
-We should test if our app behaves as expected. We use [Mocha](http://visionmedia.github.com/mocha/) as testing framework. Test are executed using `brunch test` or by using the browser runner at [localhost:3333/test](http://localhost:3333/test).
+We should test if our app behaves as expected. We use [Mocha](http://mochajs.org/) as testing framework. Test are executed using `brunch test` or by using the browser runner at [localhost:3333/test](http://localhost:3333/test).
 
 `brunch test` is run in Node.js, and calls `test_helpers.coffee` to include necessary libraries, such the 
 [chai.js](http://chaijs.com/api/bdd/) **expect** grammar.
